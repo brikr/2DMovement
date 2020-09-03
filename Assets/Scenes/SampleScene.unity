@@ -7231,8 +7231,8 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.2125484, y: 0.649154}
-  m_EdgeRadius: 0.3
+  m_Size: {x: 0.6125484, y: 1.049154}
+  m_EdgeRadius: 0.1
 --- !u!50 &1786372097
 Rigidbody2D:
   serializedVersion: 4
@@ -7276,6 +7276,8 @@ MonoBehaviour:
   groundCheckObjects:
   - {fileID: 1734698387}
   - {fileID: 128294019}
+  edgeThreshold: 0.1
+  collisionStateStr: none
 --- !u!114 &1786372099
 MonoBehaviour:
   m_ObjectHideFlags: 0
