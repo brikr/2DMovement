@@ -21,7 +21,7 @@ public class CharacterController2D : MonoBehaviour {
   private bool isGrounded {
     get {
       foreach (ColliderCheck check in this.groundChecks) {
-        if (check.State()) {
+        if (this.collisionState.bottom && check.State()) {
           return true;
         }
       }
@@ -168,8 +168,7 @@ public class CharacterController2D : MonoBehaviour {
 
   private CollisionState collisionState;
   private int contactCount;
-  [SerializeField]
-  private float edgeThreshold = 0.1f;
+  public float boxColliderEdgeRadius = 0.1f;
 
   void UpdateCollisionInfo(Collision2D collision) {
     this.collisionState.top = false;
@@ -195,31 +194,34 @@ public class CharacterController2D : MonoBehaviour {
     // NOTE: If we start using multiple colliders, this code will not be happy
     Collider2D me = this.contactPoints[0].otherCollider;
 
-    Vector2 horizontalEdgeSize = new Vector2(me.bounds.size.x + this.edgeThreshold, this.edgeThreshold);
-    Vector2 verticalEdgeSize = new Vector2(this.edgeThreshold, me.bounds.size.y + this.edgeThreshold);
-
-    Bounds top = new Bounds(new Vector2(me.bounds.center.x, me.bounds.center.y + me.bounds.extents.y), horizontalEdgeSize);
-    Bounds bottom = new Bounds(new Vector2(me.bounds.center.x, me.bounds.center.y - me.bounds.extents.y), horizontalEdgeSize);
-    Bounds left = new Bounds(new Vector2(me.bounds.center.x - me.bounds.extents.x, me.bounds.center.y), verticalEdgeSize);
-    Bounds right = new Bounds(new Vector2(me.bounds.center.x + me.bounds.extents.x, me.bounds.center.y), verticalEdgeSize);
-    Bounds front = this.facingRight ? right : left;
-    Bounds back = this.facingRight ? left : right;
+    float top = me.bounds.max.y;
+    float bottom = me.bounds.min.y;
+    float left = me.bounds.min.x;
+    float right = me.bounds.max.x;
 
     for (int i = 0; i < this.contactCount; i++) {
-      if (top.Contains(this.contactPoints[i].point)) {
-        this.collisionState.top = true;
-      }
+      // Calculate our collision states. In order to satisfy an edge, the point must be at least
+      // boxColliderEdgeRadius * 0.8 from that edge. This prevents points near the rounded corners from counting a side
+      // that they are not really near
+      Vector2 point = this.contactPoints[i].point;
+      float threshold = this.boxColliderEdgeRadius * 0.8f;
 
-      if (bottom.Contains(this.contactPoints[i].point)) {
+      if (bottom - point.y > threshold) {
         this.collisionState.bottom = true;
-      }
-
-      if (front.Contains(this.contactPoints[i].point)) {
-        this.collisionState.front = true;
-      }
-
-      if (back.Contains(this.contactPoints[i].point)) {
-        this.collisionState.back = true;
+      } else if (left - point.x > threshold) {
+        if (!this.facingRight) {
+          this.collisionState.front = true;
+        } else {
+          this.collisionState.back = true;
+        }
+      } else if (point.x - right > threshold) {
+        if (this.facingRight) {
+          this.collisionState.front = true;
+        } else {
+          this.collisionState.back = true;
+        }
+      } else if (point.y - top > threshold) {
+        this.collisionState.top = true;
       }
     }
   }
