@@ -1,2 +1,2 @@
-- isGrounded should check that lower part of the box collider is colliding. do we even need circle collider triggers at that point?
 - weird slow down if you hit the ground rolling. maybe bypass acceleration in that case and just keep speed?
+- really seeming like the best way to tell which side of character is hit is just using multiple colliders

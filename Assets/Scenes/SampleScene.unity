@@ -7276,8 +7276,7 @@ MonoBehaviour:
   groundCheckObjects:
   - {fileID: 1734698387}
   - {fileID: 128294019}
-  edgeThreshold: 0.1
-  collisionStateStr: none
+  boxColliderEdgeRadius: 0.1
 --- !u!114 &1786372099
 MonoBehaviour:
   m_ObjectHideFlags: 0
