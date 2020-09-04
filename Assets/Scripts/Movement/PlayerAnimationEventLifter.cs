@@ -12,4 +12,8 @@ public class PlayerAnimationEventLifter : MonoBehaviour {
   void EndRoll() {
     this.parentCharacterController.EndRoll();
   }
+
+  void SpawnWallSlideDust() {
+    this.parentCharacterController.SpawnWallSlideDust();
+  }
 }

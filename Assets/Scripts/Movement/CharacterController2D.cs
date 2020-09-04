@@ -11,10 +11,15 @@ public class CharacterController2D : MonoBehaviour {
   public float acceleration = 12f;
   [Range(0, 1)]
   public float airAccelerationMultiplier = 0f;
-  [Range(0, 0.3f)] [SerializeField] private float movementSmoothing = .05f;    // How much to smooth out the movement
   private Vector3 smoothVelocity = Vector3.zero;
+  public GameObject wallSlideDustPrefab;
 
   private Rigidbody2D rb;
+
+  private CollisionState collisionState;
+  private int contactCount;
+  private ContactPoint2D[] contactPoints = new ContactPoint2D[10];
+  public float boxColliderEdgeRadius = 0.1f;
 
   public GameObject[] groundCheckObjects;
   private List<ColliderCheck> groundChecks = new List<ColliderCheck>();
@@ -29,18 +34,47 @@ public class CharacterController2D : MonoBehaviour {
     }
   }
 
+  public GameObject[] frontWallCheckObjects;
+  private List<ColliderCheck> frontWallChecks = new List<ColliderCheck>();
+  public GameObject[] backWallCheckObjects;
+  private List<ColliderCheck> backWallChecks = new List<ColliderCheck>();
+  private bool isOnWall {
+    get {
+      foreach (ColliderCheck check in this.frontWallChecks) {
+        if (this.collisionState.front && check.State()) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
+
   private bool isRolling = false;
   private bool canRoll = true;
 
   private bool facingRight = true;
 
-  private ContactPoint2D[] contactPoints = new ContactPoint2D[10];
 
   void Awake() {
     foreach (GameObject groundCheckObject in this.groundCheckObjects) {
       ColliderCheck check = groundCheckObject.GetComponent<ColliderCheck>();
       if (check != null) {
         this.groundChecks.Add(check);
+      }
+    }
+
+    foreach (GameObject frontWallCheckObject in this.frontWallCheckObjects) {
+      ColliderCheck check = frontWallCheckObject.GetComponent<ColliderCheck>();
+      if (check != null) {
+        this.frontWallChecks.Add(check);
+      }
+    }
+
+    foreach (GameObject backWallCheckObject in this.backWallCheckObjects) {
+      ColliderCheck check = backWallCheckObject.GetComponent<ColliderCheck>();
+      if (check != null) {
+        this.backWallChecks.Add(check);
       }
     }
 
@@ -132,7 +166,7 @@ public class CharacterController2D : MonoBehaviour {
     // Move us towards target velocity using appropriate acceleration
     this.rb.velocity = Vector3.MoveTowards(rb.velocity, targetVelocity, accel * Time.fixedDeltaTime);
 
-    return new MovementState(isGrounded, jumped, rolled, this.rb.velocity);
+    return new MovementState(this.isGrounded, this.isOnWall, jumped, rolled, this.rb.velocity);
   }
 
   private void Flip() {
@@ -154,6 +188,10 @@ public class CharacterController2D : MonoBehaviour {
     this.canRoll = true;
   }
 
+  public void SpawnWallSlideDust() {
+    Instantiate(this.wallSlideDustPrefab, this.rb.transform);
+  }
+
   void OnCollisionEnter2D(Collision2D collision) {
     UpdateCollisionInfo(collision);
   }
@@ -165,10 +203,6 @@ public class CharacterController2D : MonoBehaviour {
   void OnCollisionExit2D(Collision2D collision) {
     UpdateCollisionInfo(null);
   }
-
-  private CollisionState collisionState;
-  private int contactCount;
-  public float boxColliderEdgeRadius = 0.1f;
 
   void UpdateCollisionInfo(Collision2D collision) {
     this.collisionState.top = false;

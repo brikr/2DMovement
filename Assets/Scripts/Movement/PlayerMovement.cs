@@ -55,6 +55,8 @@ public class PlayerMovement : MonoBehaviour {
     // Update animator based on movement feedback
     this.animator.SetBool("Grounded", movementState.isGrounded);
 
+    this.animator.SetBool("WallSlide", movementState.isOnWall);
+
     if (movementState.jumped) {
       this.animator.SetTrigger("Jump");
     }
